@@ -75,7 +75,7 @@ ElmoCharacterEncoderImpl::ElmoCharacterEncoderImpl(
             out_channels,
             kernel_size)
         // Explicitly set bias.
-        .with_bias(true);
+        .bias(true);
 
     // Build.
     auto conv = torch::nn::Conv1d(conv_options);
