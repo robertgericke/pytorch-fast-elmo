@@ -690,14 +690,14 @@ class FastElmo(FastElmoBase):
             weight_file: str,
             **kwargs: Any,
     ) -> None:
-        _raise_if_kwargs_is_invalid(
-                self.COMMON_PARAMS | set([
+        # _raise_if_kwargs_is_invalid(
+                # self.COMMON_PARAMS | set([
                         # Fine-tuning is not fully supported by pytorch.
                         # 'char_cnn_requires_grad',
                         # 'forward_lstm_requires_grad',
                         # 'backward_lstm_requires_grad',
-                ]),
-                kwargs)
+                # ]),
+                # kwargs)
         super().__init__(options_file, weight_file, **kwargs)
 
     def execute(self, inputs: PackedSequence) -> List[PackedSequence]:
@@ -725,15 +725,15 @@ class FastElmoWordEmbedding(FastElmoBase):
             weight_file: str,
             **kwargs: Any,
     ) -> None:
-        _raise_if_kwargs_is_invalid(
-                self.COMMON_PARAMS | {
-                        'word_embedding_weight_file',
+        # _raise_if_kwargs_is_invalid(
+                # self.COMMON_PARAMS | {
+                        # 'word_embedding_weight_file',
                         # Fine-tuning is not fully supported by pytorch.
                         # 'word_embedding_requires_grad',
                         # 'forward_lstm_requires_grad',
                         # 'backward_lstm_requires_grad',
-                },
-                kwargs)
+                # },
+                # kwargs)
 
         kwargs['disable_char_cnn'] = True
         kwargs['disable_word_embedding'] = False
