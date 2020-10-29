@@ -227,7 +227,7 @@ class FastElmoBase(torch.nn.Module):  # type: ignore
             )
 
         if not disable_char_cnn:
-            self._add_cpp_module_to_buffer(
+            self.add_module(
                     'char_cnn',
                     self.char_cnn_factory.create(requires_grad=char_cnn_requires_grad),
             )
@@ -251,7 +251,7 @@ class FastElmoBase(torch.nn.Module):  # type: ignore
             # Not a cpp extension.
             word_embedding_weight, lstm_bos_repr, lstm_eos_repr = \
                     self.word_embedding_factory.create(requires_grad=word_embedding_requires_grad)
-            self.register_buffer('word_embedding_weight', word_embedding_weight)
+            self.word_embedding_weight = Parameter(word_embedding_weight)
 
         # LSTM.
         if options_file:
@@ -279,9 +279,9 @@ class FastElmoBase(torch.nn.Module):  # type: ignore
                     backward_requires_grad=backward_lstm_requires_grad,
             )
             if not disable_forward_lstm:
-                self._add_cpp_module_to_buffer('forward_lstm', forward_lstm)
+                self.add_module('forward_lstm', forward_lstm)
             if not disable_backward_lstm:
-                self._add_cpp_module_to_buffer('backward_lstm', backward_lstm)
+                self.add_module('backward_lstm', backward_lstm)
 
             # Cache BOS/EOS reprs.
             if exec_managed_lstm_bos_eos:
@@ -338,37 +338,6 @@ class FastElmoBase(torch.nn.Module):  # type: ignore
             if output_representation_dropout > 0.0:
                 self.repr_dropout = torch.nn.Dropout(p=output_representation_dropout)
 
-    def state_dict(  # type: ignore
-            self,
-            destination=None,
-            prefix='',
-            keep_vars=False,
-    ):
-        tmp_buffers = self._buffers
-        self._buffers = OrderedDict()  # type: ignore
-        ret = super().state_dict(destination, prefix, keep_vars)
-        self._buffers = tmp_buffers
-        return ret
-
-    def _load_from_state_dict(  # type: ignore
-            self,
-            state_dict,
-            prefix,
-            local_metadata,
-            strict,
-            missing_keys,
-            unexpected_keys,
-            error_msgs,
-    ):
-        tmp_buffers = self._buffers
-        self._buffers = OrderedDict()
-        super()._load_from_state_dict(state_dict, prefix, local_metadata, strict, missing_keys,
-                                      unexpected_keys, error_msgs)
-        self._buffers = tmp_buffers
-
-    def _add_cpp_module_to_buffer(self, name: str, cpp_module: Any) -> None:
-        # register_buffer will raise an exception.
-        self._buffers[name] = cpp_module
 
     def _get_lstm_device(self) -> int:
         cpp_ext = None
