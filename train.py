@@ -56,7 +56,7 @@ for i, batch in enumerate(DataLoader(dataset, batch_size=batch_size, collate_fn=
     mask[:,0] = False
     targets = masked_select(word_ids, mask)
     context = embeddings["elmo_representations"][0][mask.roll(-1,1)]
-    loss = classifier(context, targets)
+    loss = classifier(context, targets) / targets.size(0)
     loss.backward()
     optimizer.step()
     print('[%6d] loss: %.3f' % (i + 1, loss.item()))
