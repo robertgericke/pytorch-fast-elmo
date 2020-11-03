@@ -3,7 +3,7 @@ from torch.utils.data import Dataset, DataLoader
 from pytorch_fast_elmo import FastElmoWordEmbedding, load_and_build_vocab2id, batch_to_word_ids
 from allennlp.modules.sampled_softmax_loss import SampledSoftmaxLoss
 from torch import masked_select
-from torch.optim import SGD
+from torch.optim import Adagrad
 
 class OneBillionWordDataset(Dataset):
     def _load_shard(self, shard_name):
@@ -21,9 +21,9 @@ class OneBillionWordDataset(Dataset):
 #options
 vocab_file = '../vocabulary/tokens.txt'
 num_tokens = 793471
-embedding_dim = 256
+embedding_dim = 128
 num_samples = 10
-batch_size = 10
+batch_size = 100
 options = {
             'options_file': None, 
             'weight_file': None, 
@@ -46,7 +46,7 @@ classifier = SampledSoftmaxLoss(num_tokens, 2 * embedding_dim, num_samples)
 
 ### set up training
 dataset = OneBillionWordDataset()
-optimizer = SGD(list(elmo.parameters()) + list(classifier.parameters()), lr=0.001, momentum=0.9)
+optimizer = Adagrad(list(elmo.parameters()) + list(classifier.parameters()), lr=0.2, initial_accumulator_value=1.0)
 
 for i, batch in enumerate(DataLoader(dataset, batch_size=batch_size, collate_fn=list), 0):
     optimizer.zero_grad()
