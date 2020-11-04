@@ -1,24 +1,13 @@
-import glob
-from torch.utils.data import Dataset, DataLoader
+from data import OneBillionWordIterableDataset
+from torch.utils.data import DataLoader
 from pytorch_fast_elmo import FastElmoWordEmbedding, load_and_build_vocab2id, batch_to_word_ids
 from allennlp.modules.sampled_softmax_loss import SampledSoftmaxLoss
 from torch import masked_select
 from torch.optim import Adagrad
 
-class OneBillionWordDataset(Dataset):
-    def _load_shard(self, shard_name):
-        with open(shard_name) as file:
-            self.sentences = file.readlines()  
-    def __init__(self):
-        shards = glob.glob("../1-billion-word-language-modeling-benchmark-r13output/training-monolingual.tokenized.shuffled/*")
-        self._load_shard(shards[0])
-    def __getitem__(self, index):
-        return self.sentences[index].strip("\n").split()
-    def __len__(self):
-        return len(self.sentences)
- 
 
 #options
+dataset_path = '../1-billion-word-language-modeling-benchmark-r13output/training-monolingual.tokenized.shuffled/*'
 vocab_file = '../vocabulary/tokens.txt'
 num_tokens = 793471
 embedding_dim = 128
@@ -45,7 +34,7 @@ elmo = FastElmoWordEmbedding(**options)
 classifier = SampledSoftmaxLoss(num_tokens, 2 * embedding_dim, num_samples)
 
 ### set up training
-dataset = OneBillionWordDataset()
+dataset = OneBillionWordIterableDataset(dataset_path)
 optimizer = Adagrad(list(elmo.parameters()) + list(classifier.parameters()), lr=0.2, initial_accumulator_value=1.0)
 
 for i, batch in enumerate(DataLoader(dataset, batch_size=batch_size, collate_fn=list), 0):
