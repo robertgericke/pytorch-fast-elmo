@@ -25,7 +25,7 @@ options = {
             'word_embedding_dim': embedding_dim,
             'lstm_input_size': embedding_dim,
             'lstm_hidden_size': embedding_dim,
-            'lstm_cell_size': 4 * embedding_dim,
+            'lstm_cell_size': embedding_dim,
             'output_representation_dropout': 0.1
 }
 
