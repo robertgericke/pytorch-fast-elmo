@@ -2,7 +2,7 @@ from data import OneBillionWordIterableDataset
 from torch.utils.data import DataLoader
 from pytorch_fast_elmo import FastElmoWordEmbedding, load_and_build_vocab2id, batch_to_word_ids
 from allennlp.modules.sampled_softmax_loss import SampledSoftmaxLoss
-from torch import masked_select, device
+from torch import device
 from torch.optim import Adagrad
 
 
@@ -12,7 +12,7 @@ vocab_file = '../vocabulary/tokens.txt'
 num_tokens = 793471
 embedding_dim = 64
 num_samples = 10
-batch_size = 100
+batch_size = 128
 device = device('cuda')
 options = {
             'options_file': None, 
@@ -32,7 +32,7 @@ options = {
 ### build model
 vocab2id = load_and_build_vocab2id(vocab_file)
 elmo = FastElmoWordEmbedding(**options)
-classifier = SampledSoftmaxLoss(num_tokens, 2 * embedding_dim, num_samples)
+classifier = SampledSoftmaxLoss(num_tokens, embedding_dim, num_samples)
 
 ### move model to device
 elmo.to(device)
@@ -46,11 +46,20 @@ for i, batch in enumerate(DataLoader(dataset, batch_size=batch_size, collate_fn=
     optimizer.zero_grad()
     word_ids = batch_to_word_ids(batch, vocab2id).to(device) # TODO: create tensor directly on device
     embeddings = elmo(word_ids)
+    
     mask = embeddings["mask"].bool()
     mask[:,0] = False
-    targets = masked_select(word_ids, mask)
-    context = embeddings["elmo_representations"][0][mask.roll(-1,1)]
-    loss = classifier(context, targets) / targets.size(0)
+    mask_rolled = mask.roll(-1,1)
+
+    targets_forward = word_ids[mask]
+    targets_backward = word_ids[mask_rolled]
+    context_forward = embeddings["elmo_representations"][0][:,:,:embedding_dim][mask_rolled]
+    context_backward = embeddings["elmo_representations"][0][:,:,embedding_dim:][mask]
+
+    loss_forward = classifier(context_forward, targets_forward) / targets_forward.size(0)
+    loss_backward = classifier(context_backward, targets_backward) / targets_backward.size(0)
+    loss = 0.5 * loss_forward + 0.5 * loss_backward
+
     loss.backward()
     optimizer.step()
     print('[%6d] loss: %.3f' % (i + 1, loss.item()))
