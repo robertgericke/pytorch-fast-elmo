@@ -32,7 +32,7 @@ options = {
 ### build model
 vocab2id = load_and_build_vocab2id(vocab_file)
 elmo = FastElmoWordEmbedding(**options)
-classifier = SampledSoftmaxLoss(num_tokens, embedding_dim, num_samples)
+classifier = SampledSoftmaxLoss(num_tokens+1, embedding_dim, num_samples) # +1 for padding token id 0
 
 ### move model to device
 elmo.to(device)
