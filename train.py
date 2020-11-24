@@ -44,7 +44,7 @@ optimizer = Adagrad(list(elmo.parameters()) + list(classifier.parameters()), lr=
 
 for i, batch in enumerate(DataLoader(dataset, batch_size=batch_size, collate_fn=list), 1):
     optimizer.zero_grad()
-    word_ids = batch_to_word_ids(batch, vocab2id).to(device) # TODO: create tensor directly on device
+    word_ids = batch_to_word_ids(batch, vocab2id, device=device)
     embeddings = elmo(word_ids)
     
     mask = embeddings["mask"].bool()

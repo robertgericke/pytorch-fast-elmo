@@ -178,7 +178,7 @@ def batch_to_char_ids(
     return torch.stack(rows)
 
 
-def batch_to_word_ids(batch: List[List[str]], vocab2id: Dict[str, int]) -> torch.Tensor:
+def batch_to_word_ids(batch: List[List[str]], vocab2id: Dict[str, int], dtype=torch.long, device=None) -> torch.Tensor:
     """
     For word embedding.
 
@@ -194,7 +194,7 @@ def batch_to_word_ids(batch: List[List[str]], vocab2id: Dict[str, int]) -> torch
         row.extend([0] * (max_timesteps - len(row)))
         rows.append(row)
 
-    return torch.LongTensor(rows)
+    return torch.tensor(rows, dtype=dtype, device=device)
 
 
 def get_bos_eos_token_repr(
