@@ -42,7 +42,7 @@ classifier.to(device)
 dataset = OneBillionWordIterableDataset(dataset_path)
 optimizer = Adagrad(list(elmo.parameters()) + list(classifier.parameters()), lr=0.2, initial_accumulator_value=1.0)
 
-for i, batch in enumerate(DataLoader(dataset, batch_size=batch_size, collate_fn=list), 0):
+for i, batch in enumerate(DataLoader(dataset, batch_size=batch_size, collate_fn=list), 1):
     optimizer.zero_grad()
     word_ids = batch_to_word_ids(batch, vocab2id).to(device) # TODO: create tensor directly on device
     embeddings = elmo(word_ids)
@@ -62,4 +62,4 @@ for i, batch in enumerate(DataLoader(dataset, batch_size=batch_size, collate_fn=
 
     loss.backward()
     optimizer.step()
-    print('[%6d] loss: %.3f' % (i + 1, loss.item()))
+    print('[%6d] loss: %.3f' % (i, loss.item()))
