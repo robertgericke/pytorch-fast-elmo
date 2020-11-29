@@ -4,6 +4,8 @@ from pytorch_fast_elmo import FastElmoWordEmbedding, load_and_build_vocab2id, ba
 from allennlp.modules.sampled_softmax_loss import SampledSoftmaxLoss
 from torch import device
 from torch.optim import Adagrad
+from torch.nn import DataParallel
+from torch.cuda import device_count
 
 
 #options
@@ -33,6 +35,12 @@ options = {
 vocab2id = load_and_build_vocab2id(vocab_file)
 elmo = FastElmoWordEmbedding(**options)
 classifier = SampledSoftmaxLoss(num_tokens+1, embedding_dim, num_samples) # +1 for padding token id 0
+
+### use multiple gpus
+if device.type == 'cuda' and device_count() > 1:
+  print("Train on", device_count(), "GPUs!")
+  elmo = DataParallel(elmo)
+  classifier = DataParallel(classifier)
 
 ### move model to device
 elmo.to(device)
